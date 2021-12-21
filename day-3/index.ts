@@ -14,7 +14,7 @@ async function readData(): Promise<string[]> {
   })
 }
 
-function getEpsilonByGamma(data: string[]): number {
+function getPowerConsumption(data: string[]): number {
   let positionTotals: [number, number][] = new Array(data[0].length).fill([0,0]);
   positionTotals = positionTotals.map(function () {
     return [0,0]
@@ -45,10 +45,47 @@ function getEpsilonByGamma(data: string[]): number {
   return parseInt(gamma, 2) * parseInt(epsilon, 2);
 }
 
+function getLifeSupportRating(data: string[]): number {
+  return getOxygenGeneratorRating(data) * getCO2ScrubberRating(data);
+}
+
+function getOxygenGeneratorRating(data: string[]): number {
+  let remainingData = data.slice(0);
+  for( let i=0; i<data[0].length && remainingData.length > 1; i++ ) {
+    let zeros = 0, ones = 0;
+    for( let line of remainingData ){
+      if( line[i] === '0' ) zeros++;
+      else ones++;
+    }
+    if( zeros > ones )
+      remainingData = remainingData.filter(line => line[i] === '0')
+    else 
+      remainingData = remainingData.filter(line => line[i] === '1')
+  }
+  return parseInt(remainingData[0], 2);
+}
+
+function getCO2ScrubberRating(data: string[]): number {
+  let remainingData = data.slice(0);
+  for( let i=0; i<data[0].length && remainingData.length > 1; i++ ) {
+    let zeros = 0, ones = 0;
+    for( let line of remainingData ){
+      if( line[i] === '0' ) zeros++;
+      else ones++;
+    }
+    if( zeros > ones )
+      remainingData = remainingData.filter(line => line[i] === '1')
+    else 
+      remainingData = remainingData.filter(line => line[i] === '0')
+  }
+  return parseInt(remainingData[0], 2);
+}
+
 async function runtime() {
   try {
     const data = await readData();
-    console.log("Gamma x Epsilon", getEpsilonByGamma(data));
+    console.log("Power Consumption", getPowerConsumption(data));
+    console.log("Life Support Rating", getLifeSupportRating(data));
   } catch (e) {
     console.error("Unable to read input data")
     throw e;
