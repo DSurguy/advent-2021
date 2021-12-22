@@ -16,7 +16,7 @@ async function readData(): Promise<Data> {
         let pulls = pullString.split(',').map(v => parseInt(v, 10));
         let boards = boardStrings.map(boardString => {
           return boardString.split(/\n/g).map(boardLine => {
-            return boardLine.split(/[ ]+/g).map(v => parseInt(v, 10))
+            return boardLine.split(/[ ]+/g).filter(v => v).map(v => parseInt(v, 10))
           })
         })
         resolve({
@@ -33,7 +33,7 @@ async function runtime() {
     const data = await readData();
     console.log("Initial Data Read")
     console.log("First 5 pulls", data.pulls.slice(0,5));
-    console.log("First board", data.boards[0]);
+    console.log("Third board", data.boards[3]);
   } catch (e) {
     console.error("Unable to read input data")
     throw e;
