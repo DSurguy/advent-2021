@@ -29,29 +29,13 @@ async function readData(): Promise<Data> {
   })
 }
 
-const BingoType: Record<string, number> = {
-  none: -1,
-  h1: 0,
-  h2: 1,
-  h3: 2,
-  h4: 3,
-  h5: 4,
-  v1: 5,
-  v2: 6,
-  v3: 7,
-  v4: 8,
-  v5: 9,
-  d1: 10,
-  d2: 11,
-  full: 12,
-}
-
 type Board = {
   places: number[];
   pulls: boolean[];
+  solved: boolean;
 }
 
-function getBingo(board: Board) {
+function hasBingo(board: Board) {
   for( let i=0; i<5; i++ ) {
     let rowStart = i*5;
     if( [
@@ -61,7 +45,7 @@ function getBingo(board: Board) {
       board.pulls[rowStart+3],
       board.pulls[rowStart+4]
     ].every(v => v)) {
-      return BingoType[`h${i+1}`];
+      return true;
     }
     if( [
       board.pulls[i],
@@ -70,7 +54,7 @@ function getBingo(board: Board) {
       board.pulls[i+15],
       board.pulls[i+20]
     ].every(v=>v)) {
-      return BingoType[`h${i+1}`];
+      return true;
     }
   }
   if( [
@@ -79,15 +63,15 @@ function getBingo(board: Board) {
     board.pulls[12],
     board.pulls[18],
     board.pulls[24]
-  ].every(v=>v) ) return BingoType.d1;
+  ].every(v=>v) ) return true;
   if( [
     board.pulls[4],
     board.pulls[8],
     board.pulls[12],
     board.pulls[16],
     board.pulls[20]
-  ].every(v=>v) ) return BingoType.d2;
-  return BingoType.none;
+  ].every(v=>v) ) return true;
+  return false;
 }
 
 function getUnpulledBoardValue(board: Board) {
@@ -101,7 +85,8 @@ function firstBingoBoardValue(data: Data) {
   const boards: Board[] = data.boards.map(b => {
     return {
       places: b.slice(0),
-      pulls: new Array(25).fill(false)
+      pulls: new Array(25).fill(false),
+      solved: false
     }
   })
   for( let pull of data.pulls ) {
@@ -109,8 +94,32 @@ function firstBingoBoardValue(data: Data) {
       let placePulled = board.places.indexOf(pull);
       if( placePulled !== -1 ) {
         board.pulls[placePulled] = true;
-        let bingoType = getBingo(board);
-        if( bingoType !== BingoType.none ) return getUnpulledBoardValue(board) * pull;
+        if( hasBingo(board) ) return getUnpulledBoardValue(board) * pull;
+      }
+    }
+  }
+}
+
+function lastBingoBoardValue(data: Data) {
+  let boards: Board[] = data.boards.map(b => {
+    return {
+      places: b.slice(0),
+      pulls: new Array(25).fill(false),
+      solved: false
+    }
+  })
+  let solvedBoards = 0;
+  for( let pull of data.pulls ) {
+    for( let board of boards ) {
+      if( board.solved ) continue;
+      let placePulled = board.places.indexOf(pull);
+      if( placePulled !== -1 ) {
+        board.pulls[placePulled] = true;
+        if( hasBingo(board) ) {
+          board.solved = true;
+          solvedBoards++;
+          if( solvedBoards === boards.length ) return getUnpulledBoardValue(board) * pull;
+        }
       }
     }
   }
@@ -120,6 +129,7 @@ async function runtime() {
   try {
     const data = await readData();
     console.log("First Bingo Board Value", firstBingoBoardValue(data));
+    console.log("Last Bingo Board Value", lastBingoBoardValue(data));
   } catch (e) {
     console.error("Unable to read input data")
     throw e;
