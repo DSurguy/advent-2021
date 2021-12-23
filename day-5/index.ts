@@ -42,27 +42,42 @@ async function readData(useSimpleInput: boolean): Promise<Data> {
   })
 }
 
-function getSimpleOverlaps(vents: Data) {
+enum VentType {
+  horizontal,
+  vertical,
+  diagonal
+}
+
+function getOverlaps(vents: Data, skipDiagonal = false) {
   let visited = new Set<string>();
   let overlaps = new Set<string>();
   for( let vent of vents ){
-    // skip if horizontal
-    if( vent.from.x !== vent.to.x && vent.from.y !== vent.to.y ) continue;
     let coords = {
       x: vent.from.x,
       y: vent.from.y
-    }
+    };
     let stringCoord = `${coords.x},${coords.y}`;
     if( visited.has(stringCoord) ) overlaps.add(stringCoord);
     visited.add(stringCoord);
-    let horizontalVent = vent.from.x !== vent.to.x ? true : false;
+    let ventType: VentType;
+    if( vent.from.x !== vent.to.x ) {
+      if( vent.from.y !== vent.to.y ) ventType = VentType.diagonal;
+      else ventType = VentType.horizontal;
+    }
+    else if( vent.from.y !== vent.to.y ){
+      if( vent.from.x !== vent.to.x ) ventType = VentType.diagonal;
+      else ventType = VentType.vertical;
+    }
+    else continue; //single-tile vent
 
-    while(horizontalVent ? coords.x !== vent.to.x : coords.y !== vent.to.y) {
-      if( horizontalVent ) {
+    if( skipDiagonal && ventType === VentType.diagonal ) continue;
+
+    while(!(coords.x === vent.to.x && coords.y === vent.to.y)) {
+      if( ventType === VentType.horizontal || ventType === VentType.diagonal ) {
         if( vent.from.x < vent.to.x ) coords.x++;
         else coords.x--;
       }
-      else {
+      if( ventType === VentType.vertical || ventType === VentType.diagonal ) {
         if( vent.from.y < vent.to.y ) coords.y++;
         else coords.y--;
       }
@@ -79,7 +94,8 @@ async function runtime(argv: Arguments) {
   if( isInspecting() ) debugger;
   try {
     const data = await readData(!!argv.simple);
-    console.log("Number of overlap points", getSimpleOverlaps(data));
+    console.log("Number of non-diagonal overlap points", getOverlaps(data, true));
+    console.log("Number of ALL overlap points", getOverlaps(data))
   } catch (e) {
     console.error("Unable to read input data")
     throw e;
