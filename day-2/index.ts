@@ -1,4 +1,6 @@
 import input from './input.json';
+import { Arguments } from 'yargs-parser';
+import { isInspecting } from '../utils';
 
 type Direction = 'forward' | 'down' | 'up';
 
@@ -46,6 +48,13 @@ function aimedPositionByDepth(commands: Command[]): number {
   return 0;
 }
 
-//RUNTIME
-console.log("Simple Position x Depth", simplePositionByDepth(processData(input)));
-console.log("Aimed Position x Depth", aimedPositionByDepth(processData(input)));
+function runtime(argv: Arguments) {
+  if( isInspecting() ) debugger;
+
+  console.log("Simple Position x Depth", simplePositionByDepth(processData(input)));
+  console.log("Aimed Position x Depth", aimedPositionByDepth(processData(input)));
+}
+
+export default {
+  run: (argv: Arguments) => runtime(argv)
+}

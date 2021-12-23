@@ -1,7 +1,6 @@
 import data from './input.json';
-
-console.log("Single Increases", getSingleIncreases(data));
-console.log("Window Increases", getSlidingWindowIncreaseas(data));
+import { Arguments } from 'yargs-parser';
+import { isInspecting } from '../utils';
 
 function getSingleIncreases(data: number[]) {
   let increases = 0;
@@ -24,4 +23,14 @@ function getSlidingWindowIncreaseas(data: number[]) {
     depthWindow.push(depth);
   });
   return increases;
+}
+
+function runtime(argv: Arguments) {
+  if( isInspecting() ) debugger;
+  console.log("Single Increases", getSingleIncreases(data));
+  console.log("Window Increases", getSlidingWindowIncreaseas(data));
+}
+
+export default {
+  run: (argv: Arguments) => runtime(argv)
 }

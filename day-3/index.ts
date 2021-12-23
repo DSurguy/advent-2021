@@ -1,5 +1,7 @@
 import { readFile } from 'fs';
 import path from 'path';
+import { Arguments } from 'yargs-parser';
+import { isInspecting } from '../utils';
 
 async function readData(): Promise<string[]> {
   return new Promise((resolve, reject) => {
@@ -81,7 +83,8 @@ function getCO2ScrubberRating(data: string[]): number {
   return parseInt(remainingData[0], 2);
 }
 
-async function runtime() {
+async function runtime(argv: Arguments) {
+  if( isInspecting() ) debugger;
   try {
     const data = await readData();
     console.log("Power Consumption", getPowerConsumption(data));
@@ -92,4 +95,6 @@ async function runtime() {
   }
 }
 
-runtime();
+export default {
+  run: (argv: Arguments) => runtime(argv)
+}
