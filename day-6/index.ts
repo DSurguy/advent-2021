@@ -22,11 +22,29 @@ async function readData(useSimpleInput: boolean): Promise<Data> {
   })
 }
 
+//TODO: Probably just do math, actually
+
+function countFish(data: number[]) {
+  let fish = data.slice(0);
+  for( let i=0; i<80; i++ ){
+    let newFish = [];
+    for( let f=0; f<fish.length; f++ ) {
+      if( fish[f] === 0 ){
+        fish[f] = 6;
+        newFish.push(8);
+      }
+      else fish[f]--;
+    }
+    fish = fish.concat(newFish);
+  }
+  return fish.length;
+}
+
 async function runtime(argv: Arguments) {
   if( isInspecting() ) debugger;
   try {
     const data = await readData(!!argv.simple);
-    console.log("Sample data", data.slice(0,5))
+    console.log("Fish after 80 days", countFish(data));
   } catch (e) {
     console.error("Unable to read input data")
     throw e;
