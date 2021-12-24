@@ -22,23 +22,18 @@ async function readData(useSimpleInput: boolean): Promise<Data> {
   })
 }
 
-//TODO: Probably just do math, actually
-//TODO: Definitely do math, 256 is too much (we knew that)
-
 function countFish(data: number[], days: number) {
-  let fish = data.slice(0);
+  let fish = data.reduce((counts, value) => {
+    counts[value]++;
+    return counts;
+  }, [0,0,0,0,0,0,0,0,0]);
+
   for( let i=0; i<days; i++ ){
-    let newFish = [];
-    for( let f=0; f<fish.length; f++ ) {
-      if( fish[f] === 0 ){
-        fish[f] = 6;
-        newFish.push(8);
-      }
-      else fish[f]--;
-    }
-    fish = fish.concat(newFish);
+    let zeroes = fish.shift()!;
+    fish[6] += zeroes;
+    fish[8] = zeroes;
   }
-  return fish.length;
+  return fish.reduce((sum, value) => sum + value, 0);
 }
 
 async function runtime(argv: Arguments) {
@@ -46,7 +41,7 @@ async function runtime(argv: Arguments) {
   try {
     const data = await readData(!!argv.simple);
     console.log("Fish after 80 days", countFish(data, 80));
-    // console.log("Fish after 256 days", countFish(data, 256));
+    console.log("Fish after 256 days", countFish(data, 256));
   } catch (e) {
     console.error("Unable to read input data")
     throw e;
